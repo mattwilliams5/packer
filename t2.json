@@ -1,0 +1,49 @@
+{
+        "builders": [
+                {
+                        "type": "amazon-ebs",
+                        "region": "us-east-1",
+                        "access_key": "",
+                        "secret_key": "",
+                        "source_ami": "ami-6552950e",
+                        "instance_type": "t2.micro",
+                        "ssh_username": "test",
+                        "ami_name": "MiddleTeir-{{isotime | clean_ami_name}}",
+                        "ami_description": "Amazing AMI Me",
+                        "tags": {
+                                "role": "MiddleTier"
+                        },
+                        "run_tags": {
+                                "role": "buildSystem"
+                        }
+                }
+        ],
+        "provisioners": [
+                {
+                        "type": "ansible",
+                        "playbook_file": "./middle-tier.yml"
+                },
+		{
+			"type": "file",
+			"source": "ToUpload/",
+			"destination": "/tmp"
+		},
+		{
+			"type": "shell",
+			"script": "Scripts/nginx.sh"
+		},
+		{
+			"type": "shell",
+			"inline": [
+                                "echo '**** Configuring application'",
+                                "sudo yum install -y supervisor",
+                                "sudo cp /tmp/app-supervisor.conf /etc/supervisor/conf.d",
+                                "sudo cp /tmp/app /usr/local/bin/app",
+                                "sudo supervisorctl reread"
+			]
+		}
+
+		
+        ]
+
+}
